@@ -2,10 +2,12 @@ Tutorial
 ================
 　　　　　　　　　　　　Author:冬之晓:blush:
 ----------------
-  　　　　　　　　　　E-mail:34916416@qq.com
+  　　　　　　　　　　E-mail:347916416@qq.com
 ----------------
-***
+
 [![Dongzhixiao](https://img.shields.io/badge/Made%20by-Dongzhixiao-ff69b4.svg)](https://dongzhixiao.github.io/about/)
+[![Language](https://img.shields.io/badge/Language-Python-yellow.svg)](https://www.python.org/)
+[![Framework](https://img.shields.io/badge/Framework-Scrapy-brightgreen.svg)](https://scrapy.org/)
 
 A simple sofeware to scrapy the [Nature](https://www.nature.com/search?journal=sdata&subject=) article messages,
 the contents include:
