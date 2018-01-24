@@ -13,59 +13,38 @@ class QuotesSpider(scrapy.Spider):
         # "Host": "www.xxxxxx.com",
         # "User-Agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36"
     # }
-    raw_url = 'https://www.nature.com/search?journal=sdata&subject='
-    base_url = 'https://www.nature.com/search?journal=sdata&page='
+    raw_url = 'http://www.csdata.org/p/issue/'
+    base_url = 'http://www.csdata.org'
 
     def start_requests(self):
-#==============================================================================
-#         urls = [
-#             'https://www.nature.com/search?journal=sdata&subject=',
-#             'https://www.nature.com/search?journal=sdata&page=2',
-#             'https://www.nature.com/search?journal=sdata&page=3',
-#             'https://www.nature.com/search?journal=sdata&page=4',
-#             'https://www.nature.com/search?journal=sdata&page=5',
-#             'https://www.nature.com/search?journal=sdata&page=6',
-#             'https://www.nature.com/search?journal=sdata&page=7',
-#             'https://www.nature.com/search?journal=sdata&page=8',
-#             'https://www.nature.com/search?journal=sdata&page=9',
-#             'https://www.nature.com/search?journal=sdata&page=10',
-#             'https://www.nature.com/search?journal=sdata&page=11',
-#             'https://www.nature.com/search?journal=sdata&page=12',
-#             'https://www.nature.com/search?journal=sdata&page=13',
-#             'https://www.nature.com/search?journal=sdata&page=14',
-#             'https://www.nature.com/search?journal=sdata&page=15',
-#             'https://www.nature.com/search?journal=sdata&page=16',
-#             'https://www.nature.com/search?journal=sdata&page=17',
-#             'https://www.nature.com/search?journal=sdata&page=18',
-#             'https://www.nature.com/search?journal=sdata&page=19',
-#             
-#         ]
-#==============================================================================
         yield scrapy.Request(url=self.raw_url, callback=self.parse,dont_filter = True)
-#==============================================================================
-        for i in range(2,20):
-             url = self.base_url + str(i)
-             yield scrapy.Request(url=url, callback=self.parse,dont_filter = True)
-#==============================================================================
 
     def parse(self, response):
-        # page = response.url.split("/")[-2]
-        # filename = 'quotes-%s.html' % page
-        # self.log("*************************************************")
-        # self.log("the fileName is: %s" % filename)
         
-        netware = response.selector.xpath('//h2/a[contains(@itemprop,"url")]/@href').extract()
+        netware = response.selector.xpath('//div[contains(@class,"journal_div")]//a/@href').extract()
         #self.log('文章网址：%s' % netware)
         #self.log('搜索到了: %s' % len(netware))
         
-        #netware = ['https://www.nature.com/articles/sdata2017176']
+        netware = ['http://www.csdata.org/p/issue/47/','http://www.csdata.org/p/issue/63/','/p/issue/71/']
         
-        for s in netware:
+        for i in range(2,len(netware)):
+            #self.log(self.base_url + netware[i])
+            s = self.base_url + netware[i]
             yield scrapy.Request(url=s, callback=self.parseChild,dont_filter = True,meta={'url':s})
         
-        
-        
-    def parseChild(self, response):
+    def parseChild(self,response):
+        netware = response.selector.xpath('//div[contains(@class,"all_papers_div2")]//a/@href').extract()
+        #self.log('文章网址：%s' % netware)
+        #self.log('搜索到了: %s' % len(netware))
+
+        netware = ['/p/78/']
+
+        for i in range(len(netware)):
+            #self.log(self.base_url + netware[i])
+            s = self.base_url + netware[i]
+            yield scrapy.Request(url=s, callback=self.parseSibling,dont_filter = True,meta={'url':s})
+
+    def parseSibling(self, response):
         #self.log("***********************")
         articleTitle = response.selector.xpath('//header/div/h1')
         articleTitle = articleTitle.xpath('string(.)').extract()[0]
