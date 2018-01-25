@@ -25,7 +25,7 @@ class QuotesSpider(scrapy.Spider):
         #self.log('文章网址：%s' % netware)
         #self.log('搜索到了: %s' % len(netware))
         
-        netware = ['http://www.csdata.org/p/issue/47/','http://www.csdata.org/p/issue/63/','/p/issue/71/']
+        #netware = ['http://www.csdata.org/p/issue/47/','http://www.csdata.org/p/issue/63/','/p/issue/71/']
         
         for i in range(2,len(netware)):
             #self.log(self.base_url + netware[i])
@@ -37,32 +37,49 @@ class QuotesSpider(scrapy.Spider):
         #self.log('文章网址：%s' % netware)
         #self.log('搜索到了: %s' % len(netware))
 
-        netware = ['/p/78/']
+        #netware = ['/p/78/']
 
         for i in range(len(netware)):
             #self.log(self.base_url + netware[i])
             s = self.base_url + netware[i]
             yield scrapy.Request(url=s, callback=self.parseSibling,dont_filter = True,meta={'url':s})
 
+    def dealTime(self,str):
+        str = re.sub(r"\n", r"", str)
+        str = re.sub(r"\s+", r"", str)
+        return str.strip('：')
+
+    def dealAffiliation(self,str):
+        str = re.sub(r"\n", r"", str)
+        str = re.sub(r"\s+", r"", str)
+        return str.split('，')[0]
+
+    def dealCountry(self,str):
+        str = re.sub(r"\n", r"", str)
+        str = re.sub(r"\s+", r"", str)
+        return str.split('，')[-1]
+
     def parseSibling(self, response):
         #self.log("***********************")
-        articleTitle = response.selector.xpath('//header/div/h1')
-        articleTitle = articleTitle.xpath('string(.)').extract()[0]
+        articleTitle = response.selector.xpath('//div[contains(@class,"title_ch")]/text()').extract()
+        #articleTitle = articleTitle.xpath('string(.)').extract()[0]
         #self.log('文章标题：%s' % articleTitle)
-        articleTag = response.selector.xpath('//a[contains(@data-track-source,"subject-name")]/text()').extract()
+        articleTag = 'empty'
         #self.log('文章类别：%s' % articleTag)
-        ReceivedTime = response.selector.xpath('//*[@id="content"]/div/div/article/div[1]/header/div/div/div[2]/div/dl/dd[1]/time/@datetime').extract()
+        ReceivedTime = response.selector.xpath('//*[@class="received"]/../text()').extract()
         #self.log('文章接收时间：%s' % ReceivedTime)
-        AcceptTime = response.selector.xpath('//*[@id="content"]/div/div/article/div[1]/header/div/div/div[2]/div/dl/dd[2]/time/@datetime').extract()
+        AcceptTime = 'emtpy'
         #self.log('文章接受录用时间：%s' % AcceptTime)
-        PublishedTime = response.selector.xpath('//*[@id="content"]/div/div/article/div[1]/header/div/div/div[2]/div/dl/dd[3]/time/@datetime').extract()
+        PublishedTime = response.selector.xpath('//*[@class="pub_date"]/../text()').extract()
         #self.log('文章发表时间：%s' % PublishedTime)
-        ReferencesNumber = len(response.selector.xpath('//*[@id="references-content"]/div/ol/li').extract())
+        ReferencesNumber = 'empty'
         #self.log('文章引用数目：%s' % ReferencesNumber)
         articleURL = response.meta['url']
         #self.log('文章地址：%s' % articleURL)
-        Affiliations = response.selector.xpath('//*[@id="author-information-content"]/ol/li/h3/text()').extract()
-        Authors = response.selector.xpath('//*[@id="author-information-content"]/ol/li/ul/li/span[2]/text()').extract()
+        Affiliations = response.selector.xpath('//*[contains(@id,"affChaff1")]/@value').extract()
+        #self.log("文章机构：%s"% self.dealAffiliation(Affiliations[0]))
+        Authors = response.selector.xpath('//span[@class="info_author_name_article_zh"]/text()').extract()
+        #self.log("文章作者：%s" % Authors)
         #Country = Affiliations[0].split(',')[-1]
         fileName = "test.md"
         with open(fileName, 'a',encoding='utf-8') as f:
@@ -71,31 +88,26 @@ class QuotesSpider(scrapy.Spider):
             # f.write('文章类别：%s' % articleTag)
             # f.write('\n')
             #写文章标题
-            articleTitle = re.sub(r"\n", r"", articleTitle)
-            articleTitle = re.sub(r"\s+",r" ",articleTitle)
-            f.write(articleTitle)
+            if len(articleTitle) > 0:
+                f.write(articleTitle[0])
+            else:
+                f.write('empty')
             f.write(' ; ')
             #写文章类别
-            f.write('/')
-            for content in articleTag:
-                f.write(content)
-                f.write('/')
+            f.write(articleTag)
             f.write(' ; ')
             #写文章接收时间
             if len(ReceivedTime) > 0 :
-                f.write(ReceivedTime[0])
+                f.write(self.dealTime(ReceivedTime[0]))
             else:
                 f.write('empty')
             f.write(' ; ')
             #写文章接受录用时间
-            if len(AcceptTime) > 0 :
-                f.write(AcceptTime[0])
-            else:
-                f.write('empty')
+            f.write(AcceptTime)
             f.write(' ; ')
             #文章在线发表时间
             if len(PublishedTime) > 0:
-                f.write(PublishedTime[0])
+                f.write(self.dealTime(PublishedTime[0]))
             else:
                 f.write('empty')
             f.write(' ; ')
@@ -113,14 +125,13 @@ class QuotesSpider(scrapy.Spider):
             f.write(' ; ')
             #文章机构信息
             if len(Affiliations) > 0:
-                affiliation = re.sub(r"\n", r"", Affiliations[0].split(',')[0])
-                f.write(affiliation)
+                f.write(self.dealAffiliation(Affiliations[0]))
             else:
                 f.write("empty")
             f.write(" ; ")
             #文章作者国家
             if len(Affiliations) > 0:
-                f.write(Affiliations[0].split(',')[-1].strip())
+                f.write(self.dealCountry(Affiliations[0]))
             else:
                 f.write("empty")
             f.write(' ; ')
