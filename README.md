@@ -5,7 +5,7 @@ Tutorial
   　　　　　　　　　　E-mail:347916416@qq.com
 ----------------
 
-[![Dongzhixiao](https://img.shields.io/badge/Written%20by-Dongzhixiao-ff69b4.svg)](https://dongzhixiao.github.io/about/)
+[![Dongzhixiao](https://github.com/Dongzhixiao)
 [![Language](https://img.shields.io/badge/Language-Python-yellow.svg)](https://www.python.org/)
 [![Framework](https://img.shields.io/badge/Framework-Scrapy-brightgreen.svg)](https://scrapy.org/)
 
